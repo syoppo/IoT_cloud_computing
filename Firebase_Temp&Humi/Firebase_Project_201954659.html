@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <style type="text/css">@import url("https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css");</style>
+</head>
+<body>   
+   <h1 class="text-center display-4">Cloud based IoT Weather Monitor</h1>
+        <div class="container">
+            <div>
+                <h4 class="display-4 text-center" id="time"> </h4>
+            </div>
+            <div class="row">
+                <div class="col-sm-4 mr-10 p-5 my-5 bg-dark text-white">
+                    <img src="temperature.png" class="mx-auto d-block" width="100" height="100">
+                    <h4 class="display-4 text-center" id="temp">-</h4>
+                </div>
+                <div class="col-sm-4 mr-10 p-5 my-5 bg-secondary text-white">
+                    <img src="humidity.png" class="mx-auto d-block" width="100" height="100">
+                    <h4 class="display-4 text-center" id="humi">-</h4>
+                </div>
+                <div class="col-sm-4 mr-10 p-5 my-5 bg-dark text-white">
+                    <h4 class="display-4 text-center">ONLINE STATUS</h4>
+                    <br><br>
+                    <h4 class="display-4 text-center" id="now">OFF</h4> <!--현재 ONLINE상태를 표시한다-->
+                </div>           
+            </div>
+        </div>
+    <div id="chartContainer" style="height: 400px; width: 100%;"></div>
+    
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.17.1/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
+
+    <script src="./canvasjs-2.3.2/Chart%202.3.2%20GA%20-%20Stable/canvasjs.min.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+        apiKey: "AIzaSyCBwHPbKlZigFGBq1dD7m46HiL3T9EspkM",
+        authDomain: "fir-project-1bcac.firebaseapp.com",
+        databaseURL: "https://fir-project-1bcac.firebaseio.com",
+        projectId: "fir-project-1bcac",
+        storageBucket: "fir-project-1bcac.appspot.com",
+        messagingSenderId: "338583509373",
+        appId: "1:338583509373:web:375fe0190d57069dfb5414",
+        measurementId: "G-EJVCS94QCG"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+            var humi = document.getElementById('humi');
+            var temp = document.getElementById('temp');
+            var time = document.getElementById('time');
+            var now = document.getElementById('now');
+            var objRef = firebase.database().ref().child('logDHT'); //child값이 logDHT objRef 저장
+            objRef.on("child_added", function(snapshot) {   //child_added 이벤트 발생시 데이터 스냅샷 출력
+                var newHumi = snapshot.val().humidity;      //val메소드로 스냅샷의 값을 뽑아 newHumi에 값 넣음
+                var newTemp = snapshot.val().temperature;   //val메소드로 스냅샷의 값을 뽑아 newTemp에 값 넣음
+                var newTime = snapshot.val().time;
+                humi.innerText = "Humidity : " + newHumi + "%";
+                temp.innerText = "Temperature : " + newTemp + "℃";
+                time.innerHTML = newTime;
+                now.innerHTML = "ON";
+            });
+
+
+    // CnavasJS.Chart 객체 생성 및 실행
+    var chart = new CanvasJS.Chart("chartContainer", {
+        animationEnabled: true,
+        title: {
+            text: "Time Series Data"
+        },
+        legend: {
+            fontSize: 15,
+        },
+        axisX: {
+            title: "Time",
+            suffix: "s",
+            titleFontSize: 14,
+            titleFontColor: '#03254E',
+            valueFormatString: 'HH:mm:ss',
+            labelFontColor: '#03254E',
+        },
+        axisY: {
+            title: "Temperature",
+            suffix: "°C",
+            valueFormatString: "0.0#",
+            minimum: 0,
+            maximum: 50,
+            titleFontColor: '#03254E',
+            titleFontSize: 14,
+            labelFontColor: '#03254E',
+        },
+        axisY2: {
+            title: "Humidity",
+            suffix: "%",
+            valueFormatString: "0.0#",
+            minimum: 0,
+            maximum: 90,
+            titleFontColor: '#03254E',
+            titleFontSize: 14,
+            labelFontColor: '#03254E',
+        },
+        toolTip: {
+            shared: true,
+            // Custom toolTip 사용
+            contentFormatter: function(e) {
+                var content = CanvasJS.formatDate(e.entries[0].dataPoint.x, "HH:mm:ss") + "<br>";
+                content += "Temperature: " + e.entries[0].dataPoint.y + " &deg;C<br>";
+                content += "Humidity: " + e.entries[1].dataPoint.y + " %";
+                return content;
+            }
+        },
+        animationEnabled: true,
+        data: [{
+                type: "line", //change it to line, spline, area, column, pie,
+                name: "Temperature",
+                axisYType: "primary",
+                showInLegend: true,
+                legendText: "Temperature",
+                markType: "circle",
+                markerSize: 1,
+                markerColor: "red",
+                lineColor: "red",
+                dataPoints: []   // Temperature 데이터 출력 값을 저장하는 배열
+            },{
+                type: "line", //change it to line, spline, area, column, pie,
+                name: "Humidity",
+                axisYType: "secondary",
+                showInLegend: true,
+                legendText: "Humidity",
+                markType: "circle",
+                markerSize: 1,
+                markerColor: "blue",
+                lineColor: "blue",
+                dataPoints: []   // Humidity 데이터 출력 값을 저장하는 배열
+            }]
+    });
+
+        // get the text value from the database
+        var dbRef = firebase.database().ref('logDHT/');
+
+        dbRef.on('child_added', function(snapshot) {
+            var row = snapshot.val();
+
+            // firebase DB로 부터 받은 날짜 문자열은 CanvasJS에서 사용하려면 반드시 Date 객체형으로 변환해야 함
+            row.time = new Date(row.time);
+            
+            chart.options.data[0].dataPoints.push({   // data[0]는 Temperature 속성 배열
+                x: row.time,
+                y: row.temperature,
+            });
+            chart.options.data[1].dataPoints.push({   // data[1]는 Humidity 속성 배열
+                x: row.time,
+                y: row.humidity
+             });
+            chart.render();  // 데이터 포인터 값을 챠트에 넣은 후 차트 출력
+            
+            var d = new Date();
+            var t = d.getTime();
+            var rt = row.time.getTime();
+            if(t-rt>6000) {now.innerHTML="OFF";}    //현재시간에서 파이어베이스에서 가져온 시간이 일정시간 이상 차이가 나면 현재상태가 offline이라는 표시를 해 준다.
+        });
+        
+        
+            
+</script>
+</body>
+</html>
