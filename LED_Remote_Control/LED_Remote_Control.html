@@ -1,0 +1,55 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <h1 class="font-weight-bold">201954659 이해진 Firebase LED Remote Control</h1>
+        <h1 class="text-secondary" id="bigOne"></h1>
+        <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-database.js"></script>
+        <script>
+          // Your web app's Firebase configuration
+          var firebaseConfig = {
+            apiKey: "AIzaSyAqeq5MH4mKXEJ4SKlfh6mzFw5FECzpzLY",
+            authDomain: "led-remote-control-f8fc5.firebaseapp.com",
+            databaseURL: "https://led-remote-control-f8fc5.firebaseio.com",
+            projectId: "led-remote-control-f8fc5",
+            storageBucket: "led-remote-control-f8fc5.appspot.com",
+            messagingSenderId: "1092035951616",
+            appId: "1:1092035951616:web:7452292930c0e2e6fbace5",
+            measurementId: "G-Y7RGRBT6K0"
+          };
+          // Initialize Firebase
+          firebase.initializeApp(firebaseConfig);
+        </script>
+        <input type="button" name="on" value="LED ON" onclick="on()">    <!--눌렀을때 on()함수 실행 -->
+        <input type="button" name="off" value="LED OFF" onclick="off()"> <!--눌렀을때 off()함수 실행 -->
+        
+        <script>
+            var led_on = document.getElementById('on');
+            var led_off = document.getElementById('off');
+            var bigOne = document.getElementById('bigOne');
+            var dbRef = firebase.database().ref().child('LED_STATUS');//child값이 LED_STATUS로 dbRef에 저장
+
+            function on() {
+                dbRef.set('on') //on함수가 실행되면 dbRef에 값을 저장해 파이어베이스에 데이터가 들어감
+            }
+
+            function off() {
+                dbRef.set('off')//on함수가 실행되면 dbRef에 값을 저장해 파이어베이스에 데이터가 들어감
+            }
+
+            dbRef.on("value", function(snapshot) {  //value이벤트 발생시 데이터 스냅샷 출력
+              if (snapshot.val() == 'on') { //스냅샷의 값이 on일 경우
+                bigOne.innerText = 'LED is ON'; 
+              } else if (snapshot.val() == 'off'){  //스냅샷의 값이 off일 경우
+                bigOne.innerText = 'LED is OFF';
+              }
+            }, function (error) {
+              console.log("Error: " + error.code);
+            });
+        </script>
+    </body>
+</html>
+
